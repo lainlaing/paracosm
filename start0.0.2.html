@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>start0.0.2</title>
+    <style>
+        @font-face {
+            font-family: 'MyCustomFont';
+            src: url('myfont.otf') format('opentype');
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: black;
+            text-align: center;
+            overflow: hidden;
+        }
+        
+        body {
+            font-family: 'MyCustomFont', sans-serif;
+        }
+
+        .dialog-box {
+            font-family: 'MyCustomFont', sans-serif;
+        }
+
+        .interactive-item {
+            font-family: 'MyCustomFont', sans-serif;
+        }
+
+        /* 加载界面 */
+        #loading-screen {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            background: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        #loading-screen img {
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+        }
+
+        /* 主界面 */
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: url('background.png') no-repeat center center;
+            background-size: cover;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        /* 交互物品 */
+        .interactive-item {
+            position: absolute;
+            width: 1400px; /* 使用相对单位，避免超出屏幕 */
+            transition: transform 0.2s ease-in-out, opacity 0.3s ease-in-out;
+        }
+
+        .interactive-item:hover {
+            transform: scale(1.1);
+        }
+
+        .interactive-item img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        /* 对话框 */
+        .dialog-box {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60%;
+            max-width: 500px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            font-size: 18px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .dialog-content {
+            text-align: left;
+            line-height: 1.6;
+        }
+        .close-btn {
+            display: block;
+            margin: 15px auto 0;
+            padding: 8px 15px;
+            border: none;
+            background: #444;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .close-btn:hover {
+            background: #666;
+        }
+
+        #fade-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: black;
+            color: white;
+            display: none; /* 初始隐藏，防止拦截交互 */
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            font-family: 'MyCustomFont', sans-serif;
+            z-index: 999;
+        }
+
+        .fade-text {
+            max-width: 80%;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body onload="startLoading()">
+
+    <!-- 音乐播放器 -->
+    <audio id="bg-music" loop>
+        <source src="we_dance.mp3" type="audio/mp3">
+    </audio>
+
+    <!-- 加载界面 -->
+    <div id="loading-screen">
+        <img src="loading_image.png" alt="加载中">
+    </div>
+
+    <!-- 交互界面 -->
+    <div class="container" id="main-screen">
+        <div class="interactive-item letter" onclick="showDialog('letter')">
+            <img src="letter.png">
+        </div>
+        <div class="interactive-item music-sheet" onclick="showDialog('music-sheet')">
+            <img src="music_stream.png">
+        </div>
+        <div class="interactive-item square-letter" onclick="showDialog('square-letter')">
+            <img src="square_letter.png">
+        </div>
+        <div class="interactive-item people-music" onclick="showDialog('people-music')">
+            <img src="music_people.png">
+        </div>
+        <div class="interactive-item pink-envelope" onclick="showDialog('pink-envelope')">
+            <img src="pink_envelope.png">
+        </div>
+    </div>
+
+    <!-- 对话框 -->
+    <div class="dialog-box" id="dialog">
+        <div class="dialog-content" id="dialog-content"></div>
+        <button class="close-btn" onclick="closeDialog()">关闭</button>
+    </div>
+
+    <!-- 黑屏过渡 -->
+    <div id="fade-screen">
+        <div class="fade-text">忘却前尘来到异世…我该如何面对？<br>无论如何，先看看周遭的状况。</div>
+    </div>
+
+    <script>
+        function startLoading() {
+            console.log("startLoading() 被执行了");
+
+            setTimeout(() => {
+                let loadingScreen = document.getElementById("loading-screen");
+                let mainScreen = document.getElementById("main-screen");
+
+                if (!loadingScreen || !mainScreen) {
+                    console.error("找不到 loading-screen 或 main-screen");
+                    return;
+                }
+
+                loadingScreen.style.opacity = "0";
+                setTimeout(() => {
+                    loadingScreen.style.display = "none";
+                    mainScreen.style.display = "block";
+                    setTimeout(() => {
+                        mainScreen.style.opacity = "1";
+                    }, 50);
+                    console.log("主界面已显示");
+                    playMusic();
+                }, 500);
+            }, 2000);
+        }
+
+        function playMusic() {
+            let music = document.getElementById("bg-music");
+            let playPromise = music.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(() => {
+                    document.body.addEventListener("click", () => {
+                        music.play();
+                    }, { once: true });
+                });
+            }
+        }
+
+        const dialog = document.getElementById("dialog");
+        const dialogContent = document.getElementById("dialog-content");
+        let currentItem = null;
+
+        const textMap = {
+            "letter": "亲爱的Lain Laing，<br>Mirrenne Ashen不知怎的接下了由女爵下发的拯救你的命令，连带着几个神棍一起。我现在可说不出来祝你好运的话了，亲爱的，哪怕那些神棍起不到什么作用，圣骑士的名号谁没听过？掳走你的我得自求多福了。<br>William Lancaster<br>06/20/10572<br><br>*字迹粗糙、墨渍晕染，信的主人似乎很匆忙，未等墨迹干涸就将信件寄出。<br>*信的主人似乎是个左撇子。",
+            "music-sheet": "-你仔细盯着那张乐谱，纸张上绘制的溪流与绿叶栩栩若生，甚至真的随周遭空气流动着。以你从前的认知来讲，这是绝不可能的。但既然被车撞后来到了这个地方…还有什么是不可能的呢。<br><br>*画者画技精湛，应当是常年画画…看来这具身体的前身是个极为爱好绘画的人。<br>*画作氛围祥和，却隐隐透露着幽玄。",
+            "square-letter": "致Willam Lancaster，<br>Lancaster大人，我想您多虑了。<br>请相信我，一切冥冥之中自有安排。<br>Lain Laing<br>06/21/10572<br><br>*墨迹尚未干涸却也未有晕染，想来刚完成不久正等待干涸后寄件。那么大概便是这具身体的前身写的信了…<br>*与另一封信截然不同的字迹，字迹圆滑却暗藏锋芒，总体来说规整美观。看起来莫名眼熟…",
+            "people-music": "-你细细看了看，倒是一幅有趣的画。画作中的小人像被施了魔法一样各司其职的动着。是了，这个世界一定有什么类似魔法的东西。你沉思着，伸出手，脑中不断回想着两张乐谱，手心竟然凝聚了一团光团。<br><br>*画风与画法与另一张乐谱上的完全一致，想来为同一人所为，即这具身体的前身…",
+            "pink-envelope": "-你看了看，除了那枚火漆印章外没有什么特别的。<br><br>*粉色信封，会是哪位人物的标志吗？<br>*那枚火漆印章上是玫瑰，信纸上也是玫瑰，或许有什么关联呢？"
+        };
+
+        function showDialog(item) {
+            let text = textMap[item];
+            dialog.style.display = "block";
+            dialog.style.opacity = "1";
+            dialogContent.innerHTML = text;
+            currentItem = document.querySelector(`.${item}`);
+        }
+
+        function closeDialog() {
+            dialog.style.opacity = "0";
+            setTimeout(() => { 
+                dialog.style.display = "none";
+                removeItem();
+            }, 300);
+        }
+
+        function removeItem() {
+            if (currentItem) {
+                currentItem.style.opacity = "0";  
+                setTimeout(() => {
+                    currentItem.remove();  
+                    currentItem = null;  
+                }, 300);
+            }
+        }
+
+       function checkEndScene() {
+    let items = document.querySelectorAll('.interactive-item');
+    if (items.length === 0) {
+        setTimeout(() => {
+            fadeToNextScene();
+        }, 500); // 0.5秒后黑屏出现
+    }
+}
+
+function fadeToNextScene() {
+    let fadeScreen = document.getElementById("fade-screen");
+    fadeScreen.style.display = "flex"; // 让黑屏可见
+    setTimeout(() => {
+        fadeScreen.style.opacity = "1"; // 黑屏淡入
+    }, 50);
+
+    setTimeout(() => {
+        window.location.href = "start0.0.3.html"; // 3秒后跳转
+    }, 3000);
+}
+
+        function removeItem() {
+            if (currentItem) {
+                currentItem.style.opacity = "0";
+                setTimeout(() => {
+                    currentItem.remove();
+                    currentItem = null;
+                    checkEndScene(); // 检查是否所有物品都消失
+                }, 300);
+            }
+        }
+    </script>
+</body>
+</html>

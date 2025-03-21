@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>start0.0.3</title>
+    <style>
+        @font-face {
+            font-family: 'MyCustomFont';
+            src: url('myfont.otf') format('opentype');
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: black;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        /* 背景 */
+        #game-screen {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            background: url('baroque.png') no-repeat center center;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        /* 角色立绘 */
+        #character-sprite {
+            position: absolute;
+            bottom: 10%;
+            right: 5%;
+            width: 40%;
+            display: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        /* 对话框 */
+        #text-box {
+            width: 100vw;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            font-size: 18px;
+            line-height: 1.6;
+            border-top: 2px solid white;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            text-align: left;
+            font-family: 'MyCustomFont', sans-serif;
+        }
+
+        /* 角色名 */
+        #character-name {
+            font-weight: bold;
+            color: blue;
+            display: block;
+        }
+    </style>
+</head>
+<body onclick="nextScene(); playMusic();" onload="startGame()">
+
+    <!-- 背景音乐 -->
+    <audio id="bg-music" loop>
+        <source src="july.mp3" type="audio/mp3">
+    </audio>
+
+    <!-- 游戏画面 -->
+    <div id="game-screen">
+        <img id="character-sprite" src="lancaster.png" alt="Lancaster">
+        <div id="text-box">
+            <span id="character-name"></span>
+            <span id="dialog-text"></span>
+        </div>
+    </div>
+
+    <!-- 音效 -->
+    <audio id="knock-sound" src="knock.mp3"></audio>
+    <audio id="door-open-sound" src="door_open.mp3"></audio>
+
+    <script>
+        let scenes = [
+            { type: "you", text: "Lain Laing…这就是我的名字…Lain？似乎有人这么叫过我很多次。" },
+            { type: "narrator", text: "你撑着桌沿缓缓起身，这具身体意料之内的格外脆弱…奇怪，你为什么会觉得自己的身体状况不好？尽管许多记忆已然模糊，有一件事却清晰得如同刻在灵魂深处——正如那封信所写，一切自有安排。" },
+            { type: "narrator", text: "你来到这里，仿佛回到了故乡。无论是书信的字迹还是身体的状况，都在告诉你：这 就 是 你。你环顾四周，眼前的装潢透着中世纪欧洲的韵味，熟悉得让人恍惚。" },
+            { type: "sound", text: "knock" }, 
+            { type: "sound", text: "door_open" },
+            { type: "lancaster", text: "Lain，你看过我的信了吗…" },
+            { type: "narrator", text: "那双宝蓝色的眼睛对上你的眼眸时骤然瞪大，话尾也卡在喉咙里吐不出来。信？难道他是那信中所谓掳走她的Lancaster？" },
+            { type: "narrator", text: "你还未来得及问出口，他就眯起眼打量你，方才眼底的熟络与亲近尽数褪去，甚至多了几分狠戾…你倒是不怕，这副故作凶狠的模样像只不通人性的兽，凭本能竖起獠牙，却不知该如何真正撕咬猎物。你却好奇起他这般作态的因由。" },
+            { type: "lancaster", text: "是你啊，异界的…" },
+            { type: "narrator", text: "他似乎琢磨着措辞，不知该怎么称呼你。青年的眼眸深邃，此时低垂着仿佛氤氲一片阴翳。哪怕再过愚蠢的人也看得出来了——他，以及真正的Lain Laing早就知道你会到来了。" },
+            { type: "you", text: "…像以前一样叫我Lain就好，Lancaster先生。" },
+            { type: "narrator", text: "你盯着他金色的睫毛看了许久，还不等他开口，于是说道。他没否认这个称呼，那他就是Lancaster了。" },
+            { type: "narrator", text: "William Lancaster 微微迟疑，指尖在掌心收拢又松开。再摊开时，手心已然多出一卷羊皮纸。" },
+            { type: "lancaster", text: "这是…Laing小姐为你写的帕拉科森指南。以你们如出一辙的聪明才智，应当不需我过多介绍。告辞。" },
+            { type: "narrator", text: "他说罢，将卷轴放在一旁的桌上，微微颔首，转身离去。" },
+        ];
+
+        let sceneIndex = 0;
+        let typingSpeed = 30;
+        let isTyping = false;
+
+        function startGame() {
+            nextScene();
+        }
+
+        function nextScene() {
+            if (sceneIndex >= scenes.length || isTyping) return;
+
+            let scene = scenes[sceneIndex];
+            let textElement = document.getElementById("dialog-text");
+            let nameElement = document.getElementById("character-name");
+            let sprite = document.getElementById("character-sprite");
+
+            if (scene.type === "sound") {
+                playSound(scene.text);
+                sceneIndex++;
+                return nextScene();
+            }
+
+            // 控制角色立绘显示
+            if (scene.type === "lancaster") {
+                sprite.style.display = "block";
+                sprite.style.opacity = "1";
+            } else {
+                sprite.style.opacity = "0";
+                setTimeout(() => {
+                    sprite.style.display = "none";
+                }, 300);
+            }
+
+            nameElement.innerHTML = getCharacterName(scene.type);
+            textElement.innerHTML = ""; 
+
+            isTyping = true;
+            let i = 0;
+            function typeWriter() {
+                if (i < scene.text.length) {
+                    textElement.innerHTML += scene.text.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, typingSpeed);
+                } else {
+                    isTyping = false;
+                    sceneIndex++;
+                }
+            }
+            typeWriter();
+        }
+
+        function playSound(soundType) {
+            if (soundType === "knock") {
+                document.getElementById("knock-sound").play();
+            } else if (soundType === "door_open") {
+                document.getElementById("door-open-sound").play();
+            }
+        }
+
+        function playMusic() {
+            let music = document.getElementById("bg-music");
+            music.play().catch(() => {
+                document.body.addEventListener("click", () => {
+                    music.play();
+                }, { once: true });
+            });
+        }
+
+        function getCharacterName(type) {
+            if (type === "you") return "你：";
+            if (type === "lancaster") return "William Lancaster：";
+            if (type === "narrator") return "";
+            return "";
+        }
+    </script>
+
+</body>
+</html>
