@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>start.0.0.1</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: black;
+            color: white;
+            font-family: "宋体", serif;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .loading-text {
+            font-size: 24px;
+            opacity: 1;
+            animation: blink 1.5s infinite alternate;
+        }
+        @keyframes blink {
+            0% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+        .progress-bar {
+            width: 80%;
+            max-width: 400px;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            margin-top: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-bar::after {
+            content: "";
+            width: 0%;
+            height: 100%;
+            background-color: white;
+            display: block;
+            position: absolute;
+            animation: load 3s linear forwards;
+        }
+        @keyframes load {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-text">世界正在窥伺着你…</div>
+    <div class="progress-bar"></div>
+
+    <script>
+        setTimeout(() => {
+            window.location.href = "start0.0.2.html"; // 这里替换成你的主界面文件
+        }, 3200); // 3.2秒后跳转
+    </script>
+</body>
+</html>
